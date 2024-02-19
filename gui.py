@@ -13,7 +13,7 @@ class ElevatorSimulator:
         self.root.geometry("400x300")  # Width x Height
         
         # Create UI elements
-        self.floor_label = tk.Label(root, text="Currently at Floor: 0")
+        self.floor_label = tk.Label(root, fg="green", text=" 00", font=("Comic Sans MS", 24, "bold"))
         self.floor_label.pack()
 
         self.floor_entry = tk.Entry(root, width=40)
@@ -22,13 +22,23 @@ class ElevatorSimulator:
         self.floor_entry.bind("<FocusOut>", self.restore_placeholder)  # Restore placeholder text if empty on focus out
         self.floor_entry.pack(pady=20)
         
+        # Create buttons for floors
+        self.floor_buttons = []
+        for i in range(4):
+            floor_button = tk.Button(root, text=str(i), command=lambda i=i: self.select_floor(i))
+            floor_button.pack(side=tk.LEFT, padx=10, pady=10) 
+            self.floor_buttons.append(floor_button)
 
-        self.request_button = tk.Button(root, text="Request Floor", command=self.request_floor, bg="blue", fg="white")
+        self.request_button = tk.Button(root, text="ENTER", command=self.request_floor, bg="blue", fg="white")
         self.request_button.pack(pady=5)
 
-        self.next_stop_button = tk.Button(root, text="Alight", command=self.process_next_stop, bg="green", fg="white")
-        self.next_stop_button.pack(pady=5)
-
+        self.next_stop_button = tk.Button(root, text="OPEN DOOR", command=self.process_next_stop, bg="green", fg="white")
+        self.next_stop_button.pack(pady=0)
+        
+    def select_floor(self, floor):
+        self.floor_entry.delete(0, tk.END)
+        self.floor_entry.insert(0, str(floor))
+        
     def request_floor(self):
         try:
             floor = int(self.floor_entry.get())
@@ -36,7 +46,7 @@ class ElevatorSimulator:
                 self.stops.add(floor)
                 messagebox.showinfo("Request", f"Floor {floor} requested.")
             else:
-                messagebox.showerror("Error", "Please enter a positive integer less than 4.")
+                messagebox.showerror("Error", "Please enter a floor between 0 and 3.")
         except ValueError:
             messagebox.showerror("Error", "Invalid input. Please enter a valid floor number.")
 
@@ -44,10 +54,13 @@ class ElevatorSimulator:
         if self.current_floor in self.stops:
             self.open_door()
             self.stops.remove(self.current_floor)
-        elif self.current_floor < min(self.stops):
-            self.move_up()
-        elif self.current_floor > max(self.stops):
-            self.move_down()
+        elif self.stops:  # Check if there are any floors requested
+            if self.current_floor < min(self.stops):
+                self.move_up()
+            elif self.current_floor > max(self.stops):
+                self.move_down()
+        else:
+            messagebox.showinfo("No Stops", "No floors requested.")
 
     def move_up(self):
         # Logic for moving up one floor
@@ -64,7 +77,7 @@ class ElevatorSimulator:
         messagebox.showinfo("Door", f"Door opened at Floor {self.current_floor}")
 
     def update_floor_label(self):
-        self.floor_label.config(text=f"Current Floor: {self.current_floor}")
+        self.floor_label.config(text=f"Floor 0{self.current_floor}")
         
     def clear_placeholder(self, event):
         if self.floor_entry.get() == "Enter Floor (A, B, or C)":
